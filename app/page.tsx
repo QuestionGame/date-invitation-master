@@ -57,6 +57,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isTicketDetached, setIsTicketDetached] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   const bothOpened = opened[0] && opened[1];
 
@@ -94,17 +95,20 @@ export default function Home() {
     };
 
     try {
+      setSendError("");
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error("Submission failed");
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success === false) throw new Error(result.message || `HTTP ${response.status}`);
       setIsSent(true);
       confetti({ particleCount: 160, spread: 95, origin: { y: 0.65 }, colors: ["#B23A48", "#D8A15D", "#F4ECE6", "#7E2231"] });
-    } catch {
+    } catch (error) {
       setIsSent(false);
       setIsTicketDetached(false);
+      setSendError(error instanceof Error ? error.message : "Невідома помилка");
     } finally {
       setIsSubmitting(false);
     }
@@ -250,6 +254,7 @@ export default function Home() {
               </div>
             )}
             {!isSent && isSubmitting && <p className="mt-3 text-center text-sm text-[#A8999A]">Надсилаємо квиток...</p>}
+            {!isSent && !isSubmitting && sendError && <p className="mt-3 text-center text-sm text-[#E58A96]">Не вдалося надіслати: {sendError}. Спробуй ще раз 🙏</p>}
           </motion.section>
         )}
       </AnimatePresence>
