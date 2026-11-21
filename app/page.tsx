@@ -88,9 +88,10 @@ export default function Home() {
       `Коли відповіла: ${answeredAt}`,
     ].join("\n");
     const payload = {
-      access_key: "840489e4-d055-47dd-9002-6d6dfedd1524",
+      access_key: "b191fe36-8b51-4f92-b22d-670f8204031b",
       subject: "💌 Соня відповіла на запрошення",
       from_name: "Квест для Сонечки",
+      name: "Соня",
       message,
     };
 
