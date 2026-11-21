@@ -76,13 +76,21 @@ export default function Home() {
   const submitTicket = async () => {
     setIsSubmitting(true);
     const planText = planLabels[plan] ?? plan;
+    const answeredAt = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Kyiv" }).format(new Date());
+    const choice = questions.find((q) => q.id === plan)?.title ?? "—";
+    const message = [
+      "Соня пройшла квест і підтвердила квиток 💌",
+      "",
+      `Обраний варіант: ${choice}`,
+      `План: ${planText}`,
+      "Подарунки: обидва відкрито 🏎️ 🧴",
+      `Коли відповіла: ${answeredAt}`,
+    ].join("\n");
     const payload = {
       access_key: "840489e4-d055-47dd-9002-6d6dfedd1524",
-      subject: "Нове побачення: DATE PASS № 0001",
-      from_name: "Date Invitation",
-      message: JSON.stringify({ plan: planText, gifts: "Обидва відкрито" }, null, 2),
-      plan: planText,
-      gifts: "Обидва відкрито",
+      subject: "💌 Соня відповіла на запрошення",
+      from_name: "Квест для Сонечки",
+      message,
     };
 
     try {
