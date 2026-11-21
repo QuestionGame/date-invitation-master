@@ -1,99 +1,121 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import Envelope from "@/components/Envelope";
 
-const plans = [
-  ["cinema", "Чи давно ти була в кіно?", "Великий екран, попкорн і обговорення після", "🎬"],
-  ["dinner", "Склади компанію на вечерю", "Щось смачне і, звісно, гостре", "🌶️"],
-  ["egg", "Не придумав, коротше", "Тисни, якщо смілива", "🤷"],
+type Step = "envelope" | "intro" | "questions" | "gifts" | "meme" | "ticket";
+
+const ease = [0.22, 1, 0.36, 1] as const;
+const stepAnim = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -18 },
+  transition: { duration: 0.55, ease },
+};
+
+const questions = [
+  { id: "cinema", title: "Чи давно була в кіно?", emoji: "🎬", hint: "" },
+  { id: "snack", title: "Ну перекусить не проти там👀", emoji: "🍜", hint: "" },
+  { id: "egg", title: "Не придумав кароч", emoji: "🤷", hint: "...." },
 ] as const;
 
 const planLabels: Record<string, string> = {
   cinema: "Кіно 🎬",
-  dinner: "Вечеря 🌶️",
-  egg: "Сюрприз 🏁 вирішуємо разом на місці",
+  snack: "Перекусити 👀",
+  egg: "Імпровізація 🤷",
 };
 
-const cars = [
-  ["Porsche 911", "🏎️"],
-  ["BMW M3", "🚗"],
-  ["Mini Cooper", "🚙"],
-  ["Ford Mustang", "🐎"],
-] as const;
+const card = "w-full max-w-[390px] rounded-3xl border border-[#33292C] bg-[#1C1719] p-5 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]";
+const eyebrow = "text-[11px] font-bold uppercase tracking-[0.18em] text-[#D8A15D]";
+const primaryBtn = "w-full rounded-xl bg-[#B23A48] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(178,58,72,0.7)] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#3A3033] disabled:text-[#7D6F70] disabled:shadow-none";
 
-const foods = [
-  ["Кава / Матча", "☕"],
-  ["Хрусткий круасан", "🥐"],
-  ["Смачний десерт / торт", "🍰"],
-  ["Піца", "🍕"],
-  ["Суші", "🍣"],
-  ["Щось гостреньке", "🌶️"],
-  ["", "🍷"],
-] as const;
+function GiftBox() {
+  return (
+    <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden="true">
+      <defs>
+        <linearGradient id="box" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#C8485A" /><stop offset="1" stopColor="#7E2231" /></linearGradient>
+        <linearGradient id="rib" x1="0" x2="1"><stop offset="0" stopColor="#F2C98A" /><stop offset="1" stopColor="#C98F45" /></linearGradient>
+      </defs>
+      <ellipse cx="50" cy="92" rx="34" ry="4" fill="#000" opacity="0.35" />
+      <rect x="18" y="44" width="64" height="46" rx="5" fill="url(#box)" />
+      <rect x="13" y="34" width="74" height="14" rx="4" fill="#D25467" />
+      <rect x="45" y="34" width="10" height="56" fill="url(#rib)" />
+      <path d="M50 34 C40 18 26 22 30 30 C33 36 44 35 50 34 Z M50 34 C60 18 74 22 70 30 C67 36 56 35 50 34 Z" fill="url(#rib)" />
+      <circle cx="50" cy="33" r="4" fill="#E9B46E" />
+      <rect x="22" y="50" width="20" height="3" rx="1.5" fill="#fff" opacity="0.18" />
+    </svg>
+  );
+}
+
+function RaceCar() {
+  return (
+    <svg viewBox="0 0 140 70" className="h-full w-full" aria-label="Гоночна машинка">
+      <defs>
+        <linearGradient id="carBody" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#E8505F" /><stop offset="1" stopColor="#9C1F30" /></linearGradient>
+      </defs>
+      <ellipse cx="70" cy="60" rx="58" ry="4" fill="#000" opacity="0.4" />
+      <path d="M8 46 L10 36 L30 34 L50 22 C56 18 64 17 76 17 L92 18 C100 19 106 24 112 31 L130 34 C134 35 136 39 136 44 L136 48 L8 48 Z" fill="url(#carBody)" />
+      <path d="M54 25 C58 22 64 21 72 21 L74 21 L74 32 L44 33 Z" fill="#BFD7FF" opacity="0.9" />
+      <path d="M78 21 L90 21 C97 22 102 26 106 31 L78 32 Z" fill="#9FC0F2" opacity="0.9" />
+      <path d="M6 30 L22 30 L22 34 L8 36 Z" fill="#2A2224" />
+      <rect x="2" y="26" width="22" height="5" rx="2" fill="#2A2224" />
+      <rect x="20" y="40" width="104" height="3" fill="#fff" opacity="0.85" />
+      <circle cx="62" cy="38" r="0" />
+      <circle cx="84" cy="40" r="7" fill="#FAF4EE" /><text x="84" y="43.5" textAnchor="middle" fontSize="9" fontWeight="800" fill="#9C1F30">7</text>
+      <circle cx="36" cy="49" r="11" fill="#141012" /><circle cx="36" cy="49" r="5" fill="#B9AFA9" />
+      <circle cx="112" cy="49" r="11" fill="#141012" /><circle cx="112" cy="49" r="5" fill="#B9AFA9" />
+      <rect x="130" y="38" width="6" height="4" rx="1" fill="#FFE08A" />
+    </svg>
+  );
+}
+
+function Perfume() {
+  return (
+    <svg viewBox="0 0 80 100" className="h-full w-full" aria-label="Флакон парфумів">
+      <defs>
+        <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#F6C7D2" /><stop offset="0.55" stopColor="#D98AA0" /><stop offset="1" stopColor="#8E3A57" /></linearGradient>
+        <linearGradient id="cap" x1="0" x2="1"><stop offset="0" stopColor="#F2C98A" /><stop offset="0.5" stopColor="#FFF0D2" /><stop offset="1" stopColor="#B57B35" /></linearGradient>
+      </defs>
+      <ellipse cx="40" cy="95" rx="26" ry="3.5" fill="#000" opacity="0.4" />
+      <rect x="28" y="6" width="24" height="18" rx="3" fill="url(#cap)" />
+      <rect x="34" y="24" width="12" height="8" fill="#C98F45" />
+      <rect x="12" y="32" width="56" height="60" rx="14" fill="url(#glass)" />
+      <rect x="18" y="38" width="8" height="46" rx="4" fill="#fff" opacity="0.35" />
+      <rect x="26" y="54" width="28" height="18" rx="3" fill="#FAF4EE" opacity="0.9" />
+      <text x="40" y="66" textAnchor="middle" fontSize="8" fontWeight="700" fill="#8E3A57">♥</text>
+    </svg>
+  );
+}
 
 export default function Home() {
-  const [step, setStep] = useState<"envelope" | "date" | "plan" | "car" | "food" | "ticket">("envelope");
-  const [date, setDate] = useState("");
+  const [step, setStep] = useState<Step>("envelope");
   const [plan, setPlan] = useState("");
-  const [speed, setSpeed] = useState(0);
-  const [isHolding, setIsHolding] = useState(false);
-  const [selectedCar, setSelectedCar] = useState("");
-  const [customCar, setCustomCar] = useState("");
-  const [crackStage, setCrackStage] = useState(0);
-  const [isCarSubmitted, setIsCarSubmitted] = useState(false);
-  const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
+  const [opened, setOpened] = useState<[boolean, boolean]>([false, false]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isTicketDetached, setIsTicketDetached] = useState(false);
 
-  const isUnlocked = speed >= 100;
-  const canLeavePlan = plan !== "" && (plan !== "egg" || isUnlocked);
+  const bothOpened = opened[0] && opened[1];
 
-  useEffect(() => {
-    if (!isCarSubmitted) return;
-    const timer = window.setTimeout(() => setStep("food"), 900);
-    return () => window.clearTimeout(timer);
-  }, [isCarSubmitted]);
-
-  // Пасхалка: педаль газу. Тримаєш — швидкість росте, відпускаєш — падає.
-  useEffect(() => {
-    if (isUnlocked || (!isHolding && speed === 0)) return;
-    const timer = window.setTimeout(() => setSpeed((value) => isHolding ? Math.min(100, value + 2.5) : Math.max(0, value - 3)), 40);
-    return () => window.clearTimeout(timer);
-  }, [isHolding, speed, isUnlocked]);
-
-  useEffect(() => {
-    if (!isUnlocked) return;
-    confetti({ particleCount: 90, spread: 70, origin: { y: 0.7 }, colors: ["#8C3325", "#D8A15D", "#F5ECE5", "#428094"] });
-  }, [isUnlocked]);
-
-  const pickCar = (car: string) => {
-    setSelectedCar((current) => current === car ? "" : car);
-    setCustomCar("");
+  const openGift = (index: 0 | 1) => {
+    if (opened[index]) return;
+    setOpened((current) => (index === 0 ? [true, current[1]] : [current[0], true]));
+    confetti({ particleCount: 40, spread: 55, startVelocity: 28, origin: { x: index === 0 ? 0.3 : 0.7, y: 0.5 }, colors: ["#B23A48", "#D8A15D", "#F4ECE6"] });
   };
-
-  const vibeText = crackStage > 0 ? "Головне компанія, а не тачка" : "На повному газу";
-
-  const formatDate = (value: string) => value ? new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T12:00:00`)) : "Не обрано";
 
   const submitTicket = async () => {
     setIsSubmitting(true);
-    const vibe = vibeText;
     const planText = planLabels[plan] ?? plan;
     const payload = {
       access_key: "840489e4-d055-47dd-9002-6d6dfedd1524",
       subject: "Нове побачення: DATE PASS № 0001",
       from_name: "Date Invitation",
-      message: JSON.stringify({ date, plan: planText, car: selectedCar, menu: selectedFoods, vibe }, null, 2),
-      date,
+      message: JSON.stringify({ plan: planText, gifts: "Обидва відкрито" }, null, 2),
       plan: planText,
-      car: selectedCar,
-      menu: selectedFoods.join(", "),
-      vibe,
+      gifts: "Обидва відкрито",
     };
 
     try {
@@ -104,9 +126,10 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Submission failed");
       setIsSent(true);
-      confetti({ particleCount: 140, spread: 90, origin: { y: 0.65 }, colors: ["#8C3325", "#D8A15D", "#F5ECE5", "#428094"] });
+      confetti({ particleCount: 160, spread: 95, origin: { y: 0.65 }, colors: ["#B23A48", "#D8A15D", "#F4ECE6", "#7E2231"] });
     } catch {
       setIsSent(false);
+      setIsTicketDetached(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,129 +142,131 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-[100dvh] bg-[#EFE8DF] flex items-center justify-center p-4 text-[#2D2622]">
+    <main className="min-h-[100dvh] bg-[radial-gradient(120%_80%_at_50%_0%,#2A1E22_0%,#141012_60%)] flex items-center justify-center p-4 text-[#F4ECE6]">
       <AnimatePresence mode="wait" initial={false}>
         {step === "envelope" && (
-          <motion.div key="envelope" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18, scale: 0.98 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="w-full">
-            <Envelope onOpenComplete={() => setStep("date")} />
+          <motion.div key="envelope" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18, scale: 0.98 }} transition={{ duration: 0.45, ease }} className="w-full">
+            <Envelope onOpenComplete={() => setStep("intro")} />
           </motion.div>
         )}
 
-        {step === "date" && (
-          <motion.section key="date-step" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-[390px] min-w-0 rounded-3xl border border-[#D8C8B8] bg-[#FCFAF7] p-4 shadow-xl sm:p-6">
-            <div className="relative mb-6 min-w-0 pr-20 sm:mb-7 sm:pr-24">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8C3325]">Крок 2 з 5</span>
-              <h1 className="mt-2 text-xl font-semibold leading-tight sm:text-2xl">Коли тобі зручно?</h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#7A6F68]">Обери день, а все інше я беру на себе.</p>
-              <Image src="/time.jpg" alt="Час для зустрічі" width={56} height={56} sizes="56px" className="absolute right-0 top-0 h-14 w-14 rotate-3 rounded-xl object-cover shadow-sm sm:h-[72px] sm:w-[72px]" />
-            </div>
-            <form onSubmit={(event) => { event.preventDefault(); if (date) setStep("plan"); }} className="space-y-4">
-              <label className="block min-w-0"><span className="mb-2 block text-sm font-semibold">День</span><input type="date" value={date} min="2026-09-20" onChange={(event) => setDate(event.target.value)} required className="block w-full min-w-0 appearance-none rounded-xl border border-[#D8C8B8] bg-white px-3 py-3 text-base outline-none focus:border-[#8C3325] sm:px-4" /></label>
-              <p className="rounded-xl bg-[#F5ECE5] px-4 py-3 text-xs leading-relaxed text-[#7A6F68]">Жодних жорстких рамок, підлаштуємося.</p>
-              <button type="submit" disabled={!date} className="w-full rounded-xl bg-[#8C3325] px-4 py-3.5 text-sm font-semibold text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#CDBDB0]">Далі</button>
-            </form>
+        {step === "intro" && (
+          <motion.section key="intro" {...stepAnim} className="w-full max-w-[390px] px-2 text-center">
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7, ease }} className="text-[28px] font-semibold leading-tight [text-wrap:balance]">
+              Оскільки мені важливо, що&nbsp;хоче <span className="text-[#D8A15D]">Хуліганка</span>...
+            </motion.p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1, duration: 0.5 }} className="mt-8">
+              <button type="button" onClick={() => setStep("questions")} className={primaryBtn}>Далі</button>
+            </motion.div>
           </motion.section>
         )}
 
-        {step === "plan" && (
-          <motion.section key="plan-step" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-[390px] rounded-3xl border border-[#D8C8B8] bg-[#FCFAF7] p-5 shadow-xl">
-            <div className="mb-5"><span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8C3325]">Крок 3 з 5</span><h1 className="mt-2 text-2xl font-semibold leading-tight">Оскільки твоя думка важлива, то тобі на вибір:</h1></div>
+        {step === "questions" && (
+          <motion.section key="questions" {...stepAnim} className={card}>
+            <div className="mb-5"><span className={eyebrow}>Крок 3 з 6</span><h1 className="mt-2 text-2xl font-semibold leading-tight">Пару уточнюючих питань</h1></div>
             <div className="space-y-3">
-              {plans.map(([id, title, hint, emoji]) => (
-                <button key={id} type="button" onClick={() => setPlan(id)} className={`relative flex w-full items-center gap-3 rounded-2xl border-2 bg-white p-4 text-left transition active:scale-[0.98] ${plan === id ? "border-[#8C3325] bg-[#FBF2EC]" : "border-[#E5D8CC]"}`}>
-                  <span className="text-3xl">{emoji}</span>
-                  <span className="min-w-0"><span className="block text-sm font-semibold">{title}</span><span className="mt-0.5 block text-xs text-[#7A6F68]">{hint}</span></span>
-                  {plan === id && <span className="absolute right-3 top-3 text-lg text-[#8C3325]">✓</span>}
-                </button>
-              ))}
-              {plan === "egg" && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border-2 border-dashed border-[#D8A15D] bg-[#FAF6EE] p-4">
-                  <p className="text-sm font-semibold">Окей, тоді за кермом сьогодні ти 🏁</p>
-                  <p className="mt-1 text-xs text-[#7A6F68]">Тримай педаль газу, поки не розженешся до 100.</p>
-                  <div className="relative mt-3 h-16 overflow-hidden rounded-xl bg-[#2D2622]">
-                    <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-[repeating-linear-gradient(90deg,#FAF4EE_0_20px,transparent_20px_40px)] opacity-60" />
-                    <div className="absolute right-2 top-2 h-12 w-3 bg-[conic-gradient(#fff_0_25%,#111_0_50%,#fff_0_75%,#111_0)] bg-[length:6px_6px]" />
-                    <span className="absolute bottom-1 text-4xl [transform:scaleX(-1)]" style={{ left: `${speed * 0.78}%` }}>🏎️</span>
-                  </div>
-                  <div className="mt-2 flex items-baseline justify-between"><span className="text-xs text-[#7A6F68]">Спідометр</span><span className="text-sm font-semibold"><span className="text-2xl tabular-nums text-[#8C3325]">{Math.round(speed)}</span> км/год</span></div>
-                  {isUnlocked ? (
-                    <div className="mt-3 rounded-xl bg-[#F3E7DC] p-3 text-sm"><p className="font-semibold">Сюрприз розблоковано! 🏆</p><p className="mt-1 text-[#7A6F68]">Тоді план такий: я заїду, а далі вирішуємо разом на місці. Без сценарію, тільки ти, я і трошки пригод 😉</p></div>
-                  ) : (
-                    <button type="button" onPointerDown={(event) => { event.preventDefault(); setIsHolding(true); }} onPointerUp={() => setIsHolding(false)} onPointerLeave={() => setIsHolding(false)} onPointerCancel={() => setIsHolding(false)} onContextMenu={(event) => event.preventDefault()} className={`mt-3 w-full select-none rounded-xl px-4 py-4 text-sm font-bold text-white transition [touch-action:none] ${isHolding ? "bg-[#5E2219]" : "bg-[#8C3325]"}`}>Тримай газ 🦶</button>
-                  )}
-                </motion.div>
-              )}
-              <button type="button" disabled={!canLeavePlan} onClick={() => setStep("car")} className="w-full rounded-xl bg-[#8C3325] px-4 py-3.5 text-sm font-semibold text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#CDBDB0]">Далі</button>
-            </div>
-          </motion.section>
-        )}
-
-        {step === "car" && (
-          <motion.section key="car-step" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-[390px] rounded-3xl border border-[#D8C8B8] bg-[#FCFAF7] p-5 shadow-xl">
-            <div className="mb-5"><span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8C3325]">Крок 4 з 5</span><h1 className="mt-2 text-2xl font-semibold leading-tight">Обери тачку дня 🏎️</h1><p className="mt-2 text-sm leading-relaxed text-[#7A6F68]">На чому сьогодні катаємося? Ну, хоча б у мріях.</p></div>
-            {isCarSubmitted ? (
-              <div className="rounded-2xl bg-[#F3E7DC] p-5 text-center"><p className="text-lg font-semibold">Я запам&apos;ятав👌</p></div>
-            ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {cars.map(([name, emoji]) => (
-                    <button key={name} type="button" onClick={() => pickCar(name)} className={`relative min-h-24 rounded-2xl border-2 bg-white p-4 text-left transition active:scale-[0.98] ${selectedCar === name ? "border-[#8C3325] bg-[#FBF2EC]" : "border-[#E5D8CC]"}`}><span className="text-3xl">{emoji}</span><span className="mt-2 block text-sm font-semibold">{name}</span>{selectedCar === name && <span className="absolute right-3 top-3 text-lg text-[#8C3325]">✓</span>}</button>
-                  ))}
-                </div>
-                <button type="button" disabled={crackStage >= 3} onClick={() => setCrackStage((stage) => Math.min(stage + 1, 3))} className="relative flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-[#E5D8CC] bg-white px-4 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-default disabled:opacity-90">
-                  <span>{crackStage === 0 ? "Головне не тачка, а компанія ✨" : crackStage === 1 ? "Мимо мимо👀" : crackStage === 2 ? "😐🤨" : "Ну добре, на таксі теж романтично 🚕"}</span>
-                  {crackStage > 0 && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 360 56" preserveAspectRatio="none"><path d="M72 0 L92 16 L78 29 L112 56" fill="none" stroke="#8C3325" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                  {crackStage > 1 && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 360 56" preserveAspectRatio="none"><path d="M213 0 L198 19 L222 31 L205 56 M92 16 L119 7 M198 19 L173 10" fill="none" stroke="#8C3325" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                  {crackStage > 2 && <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 360 56" preserveAspectRatio="none"><path d="M305 0 L279 14 L295 30 L267 56 M279 14 L252 5" fill="none" stroke="#8C3325" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                </button>
-                <label className={`block rounded-2xl border-2 p-4 transition ${customCar ? "border-[#8C3325] bg-[#FBF2EC]" : "border-[#E5D8CC] bg-white"}`}><span className="text-sm font-semibold">Тачка мрії</span><input type="text" value={customCar} onChange={(event) => { setCustomCar(event.target.value); setSelectedCar(event.target.value); }} placeholder="Напиши свою" className="mt-2 w-full rounded-xl border border-[#D8C8B8] px-3 py-2 text-base outline-none focus:border-[#8C3325]" /></label>
-                <button type="button" disabled={!selectedCar && crackStage === 0} onClick={() => setIsCarSubmitted(true)} className="w-full rounded-xl bg-[#8C3325] px-4 py-3.5 text-sm font-semibold text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#CDBDB0]">Далі</button>
-              </div>
-            )}
-          </motion.section>
-        )}
-
-        {step === "food" && (
-          <motion.section key="food-step" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-[390px] rounded-3xl border border-[#D8C8B8] bg-[#FCFAF7] p-5 shadow-xl">
-            <div className="relative mb-5 pr-24">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8C3325]">Крок 5 з 5</span>
-              <h1 className="mt-2 text-2xl font-semibold leading-tight">Голодною я тебе не відпущу</h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#7A6F68]">Обери, що будемо куштувати.</p>
-              <Image src="/eat-mobile.webp" alt="Щось смачненьке" width={72} height={72} sizes="72px" loading="lazy" className="absolute right-0 top-0 h-[72px] w-[72px] rotate-3 rounded-xl object-cover shadow-sm" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {foods.map(([name, emoji]) => {
-                const foodName = name || "Щось смачненьке";
-                const isSelected = selectedFoods.includes(foodName);
+              {questions.map((q) => {
+                const isSelected = plan === q.id;
                 return (
-                  <button key={foodName} type="button" onClick={() => setSelectedFoods((current) => isSelected ? current.filter((item) => item !== foodName) : [...current, foodName])} className={`relative min-h-24 rounded-2xl border-2 bg-white p-4 text-left transition active:scale-[0.98] ${isSelected ? "border-[#8C3325] bg-[#FBF2EC]" : "border-[#E5D8CC]"}`}>
-                    <span className="text-3xl">{emoji}</span>
-                    <span className="mt-2 block text-sm font-semibold">{foodName}</span>
-                    {isSelected && <span className="absolute right-3 top-3 text-lg text-[#8C3325]">✓</span>}
+                  <button key={q.id} type="button" onClick={() => setPlan(q.id)} className={`relative flex min-h-16 w-full items-center gap-3 rounded-2xl border-2 p-4 text-left transition active:scale-[0.98] ${isSelected ? "border-[#B23A48] bg-[#2A1C20]" : "border-[#33292C] bg-[#211B1D]"}`}>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#141012] text-xl">{q.emoji}</span>
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold">{q.title}</span>
+                      {q.hint && <span className="mt-0.5 block text-sm text-[#A8999A]">{q.hint}</span>}
+                    </span>
+                    {isSelected && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-[#D8A15D]">✓</span>}
                   </button>
                 );
               })}
+              <AnimatePresence>
+                {plan === "egg" && (
+                  <motion.figure key="quote" initial={{ opacity: 0, y: 10, rotate: -2 }} animate={{ opacity: 1, y: 0, rotate: -1 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.4, ease }} className="m-0 rounded-2xl border-l-4 border-[#D8A15D] bg-[#141012] px-5 py-4">
+                    <blockquote className="m-0 text-2xl font-semibold italic">«Позорище»</blockquote>
+                    <figcaption className="mt-1 text-sm text-[#A8999A]">— Соня</figcaption>
+                  </motion.figure>
+                )}
+              </AnimatePresence>
+              <button type="button" disabled={!plan} onClick={() => setStep("gifts")} className={primaryBtn}>Далі</button>
             </div>
-            <button type="button" disabled={!selectedFoods.length} onClick={() => setStep("ticket")} className="mt-4 w-full rounded-xl bg-[#8C3325] px-4 py-3.5 text-sm font-semibold text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#CDBDB0]">Далі</button>
+          </motion.section>
+        )}
+
+        {step === "gifts" && (
+          <motion.section key="gifts" {...stepAnim} className={card}>
+            <div className="mb-5"><span className={eyebrow}>Крок 4 з 6</span><h1 className="mt-2 text-2xl font-semibold leading-tight">Тут для тебе дещо є</h1><p className="mt-2 text-sm text-[#A8999A]">Відкрий обидва.</p></div>
+            <div className="grid grid-cols-2 gap-3">
+              {([0, 1] as const).map((index) => (
+                <button key={index} type="button" onClick={() => openGift(index)} aria-label={opened[index] ? (index === 0 ? "Гоночна машинка" : "Парфуми") : `Подарунок ${index + 1}`} className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 p-4 transition active:scale-[0.98] ${opened[index] ? "border-[#D8A15D]/60 bg-[radial-gradient(circle_at_50%_40%,#3A2A2E_0%,#1C1719_70%)]" : "border-[#33292C] bg-[#211B1D]"}`}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    {opened[index] ? (
+                      <motion.div key="item" initial={{ scale: 0.3, opacity: 0, rotate: -8 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 260, damping: 16 }} className={index === 0 ? "h-20 w-full" : "h-28 w-20"}>
+                        {index === 0 ? <RaceCar /> : <Perfume />}
+                      </motion.div>
+                    ) : (
+                      <motion.div key="box" animate={{ rotate: [0, -4, 4, -2, 0] }} exit={{ scale: 1.25, opacity: 0, rotate: 10 }} transition={{ rotate: { duration: 0.8, repeat: Infinity, repeatDelay: 1.6 + index * 0.4 }, default: { duration: 0.3 } }} className="h-24 w-24">
+                        <GiftBox />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </button>
+              ))}
+            </div>
+            <button type="button" disabled={!bothOpened} onClick={() => setStep("meme")} className={`mt-4 ${primaryBtn}`}>Далі</button>
+          </motion.section>
+        )}
+
+        {step === "meme" && (
+          <motion.section key="meme" {...stepAnim} className="w-full max-w-[390px]">
+            <div className="overflow-hidden rounded-3xl border border-[#33292C] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]">
+              <Image src="/meme.jpg" alt="Мем" width={523} height={382} priority className="h-auto w-full" />
+            </div>
+            <button type="button" onClick={() => setStep("ticket")} className={`mt-4 ${primaryBtn}`}>Далі</button>
           </motion.section>
         )}
 
         {step === "ticket" && (
-          <motion.section key="ticket-step" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-[720px] text-[#FAF4EE]">
+          <motion.section key="ticket" {...stepAnim} className="w-full max-w-[720px]">
             {isSent ? (
-              <div className="rounded-3xl bg-[linear-gradient(135deg,#272321_0%,#191716_55%,#40342D_100%)] px-6 py-16 text-center shadow-2xl"><p className="text-2xl font-semibold">Квиток активовано!</p><p className="mt-3 text-sm text-[#D8C8B8]">Скоро спишемось щодо деталей :)</p></div>
+              <div className="rounded-3xl border border-[#D8A15D]/40 bg-[radial-gradient(circle_at_50%_0%,#3A2A2E_0%,#1C1719_70%)] px-6 py-16 text-center shadow-2xl">
+                <p className="text-3xl">✨</p>
+                <p className="mt-3 text-2xl font-semibold">Квиток активовано!</p>
+                <p className="mt-2 text-sm text-[#C9B9B0]">До зустрічі, Хуліганко :)</p>
+              </div>
             ) : (
-              <div className="flex flex-col overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#292522_0%,#171514_52%,#3B302A_100%)] shadow-2xl sm:flex-row">
+              <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#7E2231_0%,#3A1820_45%,#1C1214_100%)] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)] ring-1 ring-[#D8A15D]/40 sm:flex-row">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#D8A15D]/10 blur-2xl" />
                 <div className="relative min-w-0 flex-1 p-6 sm:p-7">
-                  <motion.div animate={{ x: ["-140%", "180%"] }} transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 2.5, ease: "linear" }} className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 skew-x-[-18deg] bg-white/[0.08]" />
-                  <div className="flex items-start justify-between border-b border-dashed border-[#BBA99D]/50 pb-4"><div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#D8A15D]">VIP Ticket</p><h1 className="mt-2 text-2xl font-semibold">DATE PASS</h1></div><div className="text-right text-[10px] text-[#CBBAB0]"><p>№ 0001</p><p className="mt-1">BOARDING</p></div></div>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-5 text-sm"><div><p className="text-[10px] uppercase tracking-widest text-[#BBA99D]">Дата</p><p className="mt-1 font-semibold">{formatDate(date)}</p></div><div><p className="text-[10px] uppercase tracking-widest text-[#BBA99D]">План</p><p className="mt-1 font-semibold">{planLabels[plan] ?? "—"}</p></div><div className="col-span-2"><p className="text-[10px] uppercase tracking-widest text-[#BBA99D]">Тачка дня</p><p className="mt-1 font-semibold">{selectedCar || "Таксі теж підійде 🚕"}</p></div><div className="col-span-2"><p className="text-[10px] uppercase tracking-widest text-[#BBA99D]">Меню</p><p className="mt-1 font-semibold">{selectedFoods.join(" · ")}</p></div><div className="col-span-2"><p className="text-[10px] uppercase tracking-widest text-[#BBA99D]">Вайб</p><p className="mt-1 font-semibold">{vibeText}</p></div></div>
-                  <div className="flex items-end justify-between border-t border-dashed border-[#BBA99D]/50 pt-4"><div className="flex h-9 items-end gap-1" aria-label="Декоративний штрихкод">{[3, 1, 5, 2, 1, 4, 2, 6, 1, 3, 2, 5, 1, 4, 3, 2, 6, 1].map((height, index) => <span key={index} className="w-1 bg-[#FAF4EE]" style={{ height: `${height * 4 + 5}px` }} />)}</div><span className="text-right text-[10px] tracking-[0.16em] text-[#D8A15D]">DATE PASS<br />• № 0001</span></div>
+                  <motion.div animate={{ x: ["-140%", "320%"] }} transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 2.4, ease: "linear" }} className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 skew-x-[-18deg] bg-white/[0.07]" />
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className={eyebrow}>Admit two</p>
+                      <h1 className="mt-2 bg-[linear-gradient(90deg,#F2C98A,#FFF0D2,#C98F45)] bg-clip-text text-[34px] font-bold leading-none text-transparent">DATE PASS</h1>
+                      <p className="mt-2 text-sm text-[#E6D3C8]">для Хуліганки</p>
+                    </div>
+                    <div className="flex h-16 w-16 shrink-0 -rotate-12 flex-col items-center justify-center rounded-full border-2 border-dashed border-[#D8A15D]/70 text-center text-[9px] font-bold leading-tight text-[#D8A15D]">№ 0001<br />VIP</div>
+                  </div>
+                  <div className="my-5 border-t border-dashed border-[#D8A15D]/35" />
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    <div><dt className="text-[10px] uppercase tracking-widest text-[#C9A9A0]">Дата</dt><dd className="mt-1 font-semibold">Сьогодні</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-widest text-[#C9A9A0]">План</dt><dd className="mt-1 font-semibold">{planLabels[plan] ?? "—"}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-widest text-[#C9A9A0]">Подарунки</dt><dd className="mt-1 font-semibold">🏎️ + 🎁 відкрито</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-widest text-[#C9A9A0]">Дрес-код</dt><dd className="mt-1 font-semibold">Як зручно</dd></div>
+                  </dl>
+                  <div className="mt-5 flex items-end justify-between border-t border-dashed border-[#D8A15D]/35 pt-4">
+                    <div className="flex h-9 items-end gap-[3px]" aria-hidden="true">{[3, 1, 5, 2, 1, 4, 2, 6, 1, 3, 2, 5, 1, 4, 3, 2, 6, 1, 3, 5].map((h, i) => <span key={i} className="w-[3px] bg-[#F4ECE6]/85" style={{ height: `${h * 4 + 5}px` }} />)}</div>
+                    <span className="text-right text-[10px] tracking-[0.16em] text-[#D8A15D]">CHERKASY<br />2026</span>
+                  </div>
                 </div>
-                <motion.button type="button" onClick={detachTicket} disabled={isSubmitting || isTicketDetached} animate={{ x: isTicketDetached ? "110%" : 0, opacity: isTicketDetached ? 0 : 1 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} className="relative flex min-h-[150px] w-full shrink-0 flex-col items-center justify-center gap-3 border-t border-dashed border-[#D8A15D]/60 bg-[#D8A15D] px-6 py-5 text-center font-bold text-[#272321] sm:min-h-0 sm:w-[190px] sm:border-l sm:border-t-0 [touch-action:manipulation]"><span className="text-xs uppercase tracking-[0.12em]">Підтвердити</span><span className="text-[10px] leading-relaxed">Відірвати<br />та надіслати</span><span className="absolute -left-3 top-1/2 hidden h-6 w-6 -translate-y-1/2 rounded-full bg-[#EFE8DF] sm:block" /><span className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#EFE8DF]" /></motion.button>
+                <motion.button type="button" onClick={detachTicket} disabled={isSubmitting || isTicketDetached} animate={{ x: isTicketDetached ? "110%" : 0, opacity: isTicketDetached ? 0 : 1 }} transition={{ duration: 0.55, ease }} className="relative flex min-h-[140px] w-full shrink-0 flex-col items-center justify-center gap-2 border-t-2 border-dashed border-[#1C1214]/40 bg-[linear-gradient(135deg,#F2C98A,#D8A15D_50%,#B57B35)] px-6 py-5 text-center font-bold text-[#2A1A1C] sm:min-h-0 sm:w-[190px] sm:border-l-2 sm:border-t-0 [touch-action:manipulation]">
+                  <span className="text-sm uppercase tracking-[0.12em]">Підтвердити</span>
+                  <span className="text-[11px] font-semibold leading-relaxed opacity-80">Відірвати<br />та надіслати</span>
+                  <span className="absolute -left-3 top-1/2 hidden h-6 w-6 -translate-y-1/2 rounded-full bg-[#141012] sm:block" />
+                  <span className="absolute -right-3 top-1/2 hidden h-6 w-6 -translate-y-1/2 rounded-full bg-[#141012] sm:block" />
+                  <span className="absolute -top-3 left-1/2 h-6 w-6 -translate-x-1/2 rounded-full bg-[#141012] sm:hidden" />
+                </motion.button>
               </div>
             )}
-            {!isSent && isSubmitting && <p className="mt-3 text-center text-sm text-[#7A6F68]">Надсилаємо квиток...</p>}
+            {!isSent && isSubmitting && <p className="mt-3 text-center text-sm text-[#A8999A]">Надсилаємо квиток...</p>}
           </motion.section>
         )}
       </AnimatePresence>
