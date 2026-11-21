@@ -50,46 +50,6 @@ function GiftBox() {
   );
 }
 
-function RaceCar() {
-  return (
-    <svg viewBox="0 0 140 70" className="h-full w-full" aria-label="Гоночна машинка">
-      <defs>
-        <linearGradient id="carBody" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#E8505F" /><stop offset="1" stopColor="#9C1F30" /></linearGradient>
-      </defs>
-      <ellipse cx="70" cy="60" rx="58" ry="4" fill="#000" opacity="0.4" />
-      <path d="M8 46 L10 36 L30 34 L50 22 C56 18 64 17 76 17 L92 18 C100 19 106 24 112 31 L130 34 C134 35 136 39 136 44 L136 48 L8 48 Z" fill="url(#carBody)" />
-      <path d="M54 25 C58 22 64 21 72 21 L74 21 L74 32 L44 33 Z" fill="#BFD7FF" opacity="0.9" />
-      <path d="M78 21 L90 21 C97 22 102 26 106 31 L78 32 Z" fill="#9FC0F2" opacity="0.9" />
-      <path d="M6 30 L22 30 L22 34 L8 36 Z" fill="#2A2224" />
-      <rect x="2" y="26" width="22" height="5" rx="2" fill="#2A2224" />
-      <rect x="20" y="40" width="104" height="3" fill="#fff" opacity="0.85" />
-      <circle cx="62" cy="38" r="0" />
-      <circle cx="84" cy="40" r="7" fill="#FAF4EE" /><text x="84" y="43.5" textAnchor="middle" fontSize="9" fontWeight="800" fill="#9C1F30">7</text>
-      <circle cx="36" cy="49" r="11" fill="#141012" /><circle cx="36" cy="49" r="5" fill="#B9AFA9" />
-      <circle cx="112" cy="49" r="11" fill="#141012" /><circle cx="112" cy="49" r="5" fill="#B9AFA9" />
-      <rect x="130" y="38" width="6" height="4" rx="1" fill="#FFE08A" />
-    </svg>
-  );
-}
-
-function Perfume() {
-  return (
-    <svg viewBox="0 0 80 100" className="h-full w-full" aria-label="Флакон парфумів">
-      <defs>
-        <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#F6C7D2" /><stop offset="0.55" stopColor="#D98AA0" /><stop offset="1" stopColor="#8E3A57" /></linearGradient>
-        <linearGradient id="cap" x1="0" x2="1"><stop offset="0" stopColor="#F2C98A" /><stop offset="0.5" stopColor="#FFF0D2" /><stop offset="1" stopColor="#B57B35" /></linearGradient>
-      </defs>
-      <ellipse cx="40" cy="95" rx="26" ry="3.5" fill="#000" opacity="0.4" />
-      <rect x="28" y="6" width="24" height="18" rx="3" fill="url(#cap)" />
-      <rect x="34" y="24" width="12" height="8" fill="#C98F45" />
-      <rect x="12" y="32" width="56" height="60" rx="14" fill="url(#glass)" />
-      <rect x="18" y="38" width="8" height="46" rx="4" fill="#fff" opacity="0.35" />
-      <rect x="26" y="54" width="28" height="18" rx="3" fill="#FAF4EE" opacity="0.9" />
-      <text x="40" y="66" textAnchor="middle" fontSize="8" fontWeight="700" fill="#8E3A57">♥</text>
-    </svg>
-  );
-}
-
 export default function Home() {
   const [step, setStep] = useState<Step>("envelope");
   const [plan, setPlan] = useState("");
@@ -193,21 +153,18 @@ export default function Home() {
 
         {step === "gifts" && (
           <motion.section key="gifts" {...stepAnim} className={card}>
-            <div className="mb-5"><span className={eyebrow}>Крок 4 з 6</span><h1 className="mt-2 text-2xl font-semibold leading-tight">Тут для тебе дещо є</h1><p className="mt-2 text-sm text-[#A8999A]">Відкрий обидва.</p></div>
-            <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
               {([0, 1] as const).map((index) => (
                 <button key={index} type="button" onClick={() => openGift(index)} aria-label={opened[index] ? (index === 0 ? "Гоночна машинка" : "Парфуми") : `Подарунок ${index + 1}`} className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 p-4 transition active:scale-[0.98] ${opened[index] ? "border-[#D8A15D]/60 bg-[radial-gradient(circle_at_50%_40%,#3A2A2E_0%,#1C1719_70%)]" : "border-[#33292C] bg-[#211B1D]"}`}>
-                  <AnimatePresence mode="wait" initial={false}>
-                    {opened[index] ? (
-                      <motion.div key="item" initial={{ scale: 0.3, opacity: 0, rotate: -8 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 260, damping: 16 }} className={index === 0 ? "h-20 w-full" : "h-28 w-20"}>
-                        {index === 0 ? <RaceCar /> : <Perfume />}
-                      </motion.div>
-                    ) : (
-                      <motion.div key="box" animate={{ rotate: [0, -4, 4, -2, 0] }} exit={{ scale: 1.25, opacity: 0, rotate: 10 }} transition={{ rotate: { duration: 0.8, repeat: Infinity, repeatDelay: 1.6 + index * 0.4 }, default: { duration: 0.3 } }} className="h-24 w-24">
-                        <GiftBox />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {opened[index] ? (
+                    <motion.span key="item" initial={{ scale: 0.3, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 260, damping: 14 }} className="text-[72px] leading-none">
+                      {index === 0 ? "🏎️" : "🧴"}
+                    </motion.span>
+                  ) : (
+                    <motion.div key="box" animate={{ rotate: [0, -4, 4, -2, 0] }} transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 1.6 + index * 0.4 }} className="h-24 w-24">
+                      <GiftBox />
+                    </motion.div>
+                  )}
                 </button>
               ))}
             </div>
