@@ -213,7 +213,7 @@ export default function Home() {
               <div className="rounded-3xl border border-[#D8A15D]/40 bg-[radial-gradient(circle_at_50%_0%,#3A2A2E_0%,#1C1719_70%)] px-6 py-16 text-center shadow-2xl">
                 <p className="text-3xl">✨</p>
                 <p className="mt-3 text-2xl font-semibold">Квиток активовано!</p>
-                <p className="mt-2 text-sm text-[#C9B9B0]">До зустрічі, Сонечко :)</p>
+                <p className="mt-2 text-sm text-[#C9B9B0]">До зустрічі, Сонечка</p>
               </div>
             ) : (
               <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#7E2231_0%,#3A1820_45%,#1C1214_100%)] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)] ring-1 ring-[#D8A15D]/40 sm:flex-row">
