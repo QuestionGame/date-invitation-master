@@ -147,10 +147,22 @@ export default function Home() {
               })}
               <AnimatePresence>
                 {plan === "egg" && (
-                  <motion.figure key="quote" initial={{ opacity: 0, y: 10, rotate: -2 }} animate={{ opacity: 1, y: 0, rotate: -1 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.4, ease }} className="m-0 rounded-2xl border-l-4 border-[#D8A15D] bg-[#141012] px-5 py-4">
-                    <blockquote className="m-0 text-2xl font-semibold italic">«Позорище»</blockquote>
-                    <figcaption className="mt-1 text-sm text-[#A8999A]">— Соня</figcaption>
-                  </motion.figure>
+                  <motion.div key="quote" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.6, ease }} className="overflow-hidden">
+                    <figure className="relative m-0 mb-1 overflow-hidden rounded-2xl border border-[#D8A15D]/25 bg-[#110D0F] px-5 py-5">
+                      <motion.div aria-hidden="true" animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.15, 1] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }} className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-[#D8A15D]/20 blur-3xl" />
+                      <motion.div aria-hidden="true" initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: 0.2, duration: 0.7, ease }} className="absolute inset-y-3 left-0 w-[3px] origin-top rounded-full bg-[linear-gradient(#F2C98A,#B57B35)]" />
+                      <blockquote className="relative m-0 text-[28px] font-semibold italic leading-tight" aria-label="«Позорище»">
+                        {Array.from("«Позорище»").map((char, i) => (
+                          <motion.span key={i} aria-hidden="true" initial={{ opacity: 0, y: 8, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ delay: 0.45 + i * 0.09, duration: 0.6, ease }} className="inline-block">
+                            {char}
+                          </motion.span>
+                        ))}
+                      </blockquote>
+                      <motion.figcaption initial={{ opacity: 0, x: -8, letterSpacing: "0.4em" }} animate={{ opacity: 1, x: 0, letterSpacing: "0.05em" }} transition={{ delay: 1.6, duration: 0.9, ease }} className="relative mt-2 text-sm text-[#A8999A]">
+                        — Соня
+                      </motion.figcaption>
+                    </figure>
+                  </motion.div>
                 )}
               </AnimatePresence>
               <button type="button" disabled={!plan} onClick={() => setStep("gifts")} className={primaryBtn}>Далі</button>
