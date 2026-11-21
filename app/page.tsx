@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -59,6 +59,13 @@ export default function Home() {
   const [isTicketDetached, setIsTicketDetached] = useState(false);
 
   const bothOpened = opened[0] && opened[1];
+
+  // Мем спливає, тримається кілька секунд і сам переходить до квитка
+  useEffect(() => {
+    if (step !== "meme") return;
+    const timer = window.setTimeout(() => setStep("ticket"), 4200);
+    return () => window.clearTimeout(timer);
+  }, [step]);
 
   const openGift = (index: 0 | 1) => {
     if (opened[index]) return;
@@ -174,10 +181,9 @@ export default function Home() {
 
         {step === "meme" && (
           <motion.section key="meme" {...stepAnim} className="w-full max-w-[390px]">
-            <div className="overflow-hidden rounded-3xl border border-[#33292C] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]">
+            <motion.div initial={{ opacity: 0, y: 60, scale: 0.85, rotate: -3 }} animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.15 }} className="overflow-hidden rounded-3xl border border-[#33292C] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]">
               <Image src="/meme.jpg" alt="Мем" width={523} height={382} priority className="h-auto w-full" />
-            </div>
-            <button type="button" onClick={() => setStep("ticket")} className={`mt-4 ${primaryBtn}`}>Далі</button>
+            </motion.div>
           </motion.section>
         )}
 
@@ -187,7 +193,7 @@ export default function Home() {
               <div className="rounded-3xl border border-[#D8A15D]/40 bg-[radial-gradient(circle_at_50%_0%,#3A2A2E_0%,#1C1719_70%)] px-6 py-16 text-center shadow-2xl">
                 <p className="text-3xl">✨</p>
                 <p className="mt-3 text-2xl font-semibold">Квиток активовано!</p>
-                <p className="mt-2 text-sm text-[#C9B9B0]">До зустрічі, Хуліганко :)</p>
+                <p className="mt-2 text-sm text-[#C9B9B0]">До зустрічі, Сонечко :)</p>
               </div>
             ) : (
               <div className="relative flex flex-col overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#7E2231_0%,#3A1820_45%,#1C1214_100%)] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)] ring-1 ring-[#D8A15D]/40 sm:flex-row">
@@ -198,7 +204,7 @@ export default function Home() {
                     <div>
                       <p className={eyebrow}>Admit two</p>
                       <h1 className="mt-2 bg-[linear-gradient(90deg,#F2C98A,#FFF0D2,#C98F45)] bg-clip-text text-[34px] font-bold leading-none text-transparent">DATE PASS</h1>
-                      <p className="mt-2 text-sm text-[#E6D3C8]">для Хуліганки</p>
+                      <p className="mt-2 text-sm text-[#E6D3C8]">для Сонечки</p>
                     </div>
                     <div className="flex h-16 w-16 shrink-0 -rotate-12 flex-col items-center justify-center rounded-full border-2 border-dashed border-[#D8A15D]/70 text-center text-[9px] font-bold leading-tight text-[#D8A15D]">№ 0001<br />VIP</div>
                   </div>
