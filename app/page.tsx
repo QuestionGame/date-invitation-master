@@ -63,7 +63,7 @@ export default function Home() {
   // Мем спливає, тримається кілька секунд і сам переходить до квитка
   useEffect(() => {
     if (step !== "meme") return;
-    const timer = window.setTimeout(() => setStep("ticket"), 4200);
+    const timer = window.setTimeout(() => setStep("ticket"), 3000);
     return () => window.clearTimeout(timer);
   }, [step]);
 
@@ -192,8 +192,8 @@ export default function Home() {
         )}
 
         {step === "meme" && (
-          <motion.section key="meme" {...stepAnim} className="w-full max-w-[390px]">
-            <motion.div initial={{ opacity: 0, y: 60, scale: 0.85, rotate: -3 }} animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.15 }} className="overflow-hidden rounded-3xl border border-[#33292C] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]">
+          <motion.section key="meme" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="w-full max-w-[390px]">
+            <motion.div initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }} animate={{ opacity: [0, 1, 1, 0], scale: [0.92, 1, 1, 1.04], filter: ["blur(8px)", "blur(0px)", "blur(0px)", "blur(8px)"] }} transition={{ duration: 3, times: [0, 0.22, 0.78, 1], ease: "easeInOut" }} className="overflow-hidden rounded-3xl border border-[#33292C] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]">
               <Image src="/meme.jpg" alt="Мем" width={523} height={382} priority className="h-auto w-full" />
             </motion.div>
           </motion.section>
